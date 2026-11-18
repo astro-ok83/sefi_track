@@ -1,0 +1,39 @@
+name: Update Sefi Position Every 20 Min
+
+on:
+  schedule:
+    - cron: "*/20 * * * *"   # GitHub may delay scheduled runs by 5-15 min
+  workflow_dispatch:          # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: write             # needed to commit data/*.json back to the repo
+
+concurrency:
+  group: update-sefi
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Fetch latest Garmin position
+        run: python scripts/fetch_garmin.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "sefi-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/position.json data/track.json
+          if git diff --cached --quiet; then
+            echo "No change."
+          else
+            git commit -m "Update Sefi position $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase
+            git push
+          fi
