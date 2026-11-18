@@ -15,6 +15,14 @@
     .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #1e293b; color: #f8fafc; border: 1px solid #334155; }
     .pulse-dot { display: inline-block; width: 12px; height: 12px; border-radius: 9999px; background: #10b981; box-shadow: 0 0 0 0 rgba(16,185,129,0.75); animation: pulse-green 2s infinite; }
     @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.75); } 70% { box-shadow: 0 0 0 12px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
+    .leaflet-tooltip.ahead-label { background: rgba(15,23,42,0.85); color: #a7f3d0; border: 1px solid #065f46; box-shadow: none; padding: 1px 5px; font: 600 11px 'JetBrains Mono', monospace; }
+    .leaflet-tooltip.ahead-label::before { display: none; }
+    .wind-icon { pointer-events: none; }
+    .wind-arrow { width: 22px; height: 22px; margin: 0 auto; filter: drop-shadow(0 0 2px rgba(15,23,42,0.9)); }
+    .wind-icon { text-align: center; }
+    .wind-kts { display: inline-block; margin-top: 1px; padding: 1px 4px; border-radius: 6px; background: rgba(15,23,42,0.8); font: 700 10px/1.2 'JetBrains Mono', monospace; }
+    .wind-legend { background: rgba(15,23,42,0.88); color: #cbd5e1; border: 1px solid #334155; border-radius: 8px; padding: 5px 8px; font: 500 11px 'Inter', sans-serif; }
+    .wind-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 3px 0 6px; vertical-align: middle; }
   </style>
 </head>
 <body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
@@ -76,6 +84,7 @@
         <div class="flex items-center gap-1.5">
           <button id="btn-tile-ocean" type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-600 text-white">Ocean</button>
           <button id="btn-tile-sat" type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:text-white">Satellite</button>
+          <button id="btn-wind" type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-600 text-white">Wind</button>
           <button id="btn-center-sefi" type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-sky-300 hover:bg-slate-700">Center on Sefi</button>
         </div>
       </div>
@@ -84,28 +93,28 @@
 
     <section id="route-panel" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
       <div class="px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
-        <span class="text-sm font-semibold text-white">Future Route &amp; Forecast</span>
+        <span class="text-sm font-semibold text-white">Projected Course &amp; Forecast</span>
         <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <label for="route-course" class="text-slate-400">Course</label>
+          <input id="route-course" type="number" min="0" max="359" step="1" class="w-16 px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-white font-mono-num focus:outline-none focus:border-sky-500">
+          <span class="text-slate-400 mr-1">°</span>
           <label for="route-speed" class="text-slate-400">Speed</label>
-          <input id="route-speed" type="number" min="0.5" max="30" step="0.1" class="w-20 px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-white font-mono-num focus:outline-none focus:border-sky-500">
+          <input id="route-speed" type="number" min="0.5" max="30" step="0.1" class="w-16 px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-white font-mono-num focus:outline-none focus:border-sky-500">
           <span class="text-slate-400 mr-1">kts</span>
-          <button id="btn-route-avg" type="button" class="px-2.5 py-1 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">Use 24 h avg</button>
-          <button id="btn-route-edit" type="button" class="px-2.5 py-1 rounded-lg font-medium bg-slate-800 text-emerald-300 hover:bg-slate-700">Edit route</button>
-          <button id="btn-route-undo" type="button" class="px-2.5 py-1 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">Undo point</button>
-          <button id="btn-route-reset" type="button" class="px-2.5 py-1 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">Reset to Mindelo</button>
+          <button id="btn-route-auto" type="button" class="px-2.5 py-1 rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">Use boat data</button>
         </div>
       </div>
-      <div class="px-4 pt-3 space-y-1">
+      <div class="px-4 pt-3">
         <div id="route-summary" class="text-sm font-semibold text-white font-mono-num">Waiting for position…</div>
-        <div id="route-edit-hint" class="hidden text-xs text-emerald-300">Editing: click the map to add waypoints. Each click appends a new final destination.</div>
       </div>
       <div class="overflow-x-auto px-4 pt-2 pb-3">
         <table class="w-full text-xs font-mono-num">
           <thead>
             <tr class="text-left text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-800">
+              <th class="py-2 pr-3 font-medium">Ahead</th>
               <th class="py-2 pr-3 font-medium">Time</th>
               <th class="py-2 pr-3 font-medium">Position</th>
-              <th class="py-2 pr-3 font-medium text-right">To go</th>
+              <th class="py-2 pr-3 font-medium text-right">Distance</th>
               <th class="py-2 pr-3 font-medium">Wind</th>
               <th class="py-2 pr-3 font-medium text-right">Gusts</th>
               <th class="py-2 font-medium text-right">Waves</th>
@@ -115,7 +124,7 @@
         </table>
       </div>
       <p class="px-4 pb-3 text-[11px] text-slate-500">
-        Projection assumes constant speed along straight lines between waypoints, starting from the last Garmin fix. It does not account for tacking, currents or stops. Weather from Open-Meteo (nearest hour), available for the next 7 days.
+        Estimate only: holds the boat's current course and its 24 h average speed in a straight line from the last Garmin fix. Real tracks change with wind, tacking and currents. Wind and waves from Open-Meteo for the nearest hour.
       </p>
     </section>
 
@@ -133,7 +142,7 @@
   <script>
     let liveFix = null;
     let track = [];
-    let map, oceanLayer, satLayer, layerGroup, routeLayer, firstDraw = true;
+    let map, oceanLayer, satLayer, layerGroup, routeLayer, windLayer, firstDraw = true;
     const STALE_HOURS = 4;   // amber if no new Garmin fix for this long
     const BOT_LATE_MIN = 90; // amber if the GitHub Action itself stopped running
 
@@ -143,12 +152,16 @@
       satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 17 });
       layerGroup = L.layerGroup().addTo(map);
       routeLayer = L.layerGroup().addTo(map);
-      map.on('click', e => {
-        if (!routeEditing) return;
-        waypoints.push([+e.latlng.lat.toFixed(5), +e.latlng.lng.toFixed(5)]);
-        saveWaypoints();
-        scheduleRouteUpdate();
-      });
+      windLayer = L.layerGroup().addTo(map);
+      const legend = L.control({ position: 'bottomleft' });
+      legend.onAdd = () => {
+        const div = L.DomUtil.create('div', 'wind-legend');
+        div.id = 'wind-legend';
+        div.innerHTML = 'Wind now (kts)<i style="background:#7dd3fc"></i>&lt;12<i style="background:#34d399"></i>12–22<i style="background:#fbbf24"></i>22–30<i style="background:#f87171"></i>30+ <span id="wind-legend-time" class="text-slate-400"></span>';
+        return div;
+      };
+      legend.addTo(map);
+      map.on('moveend', scheduleWindUpdate);
     }
 
     function fmtCoord(lat, lon) {
@@ -243,36 +256,28 @@
         document.getElementById('kpi-weather').textContent = 'Unavailable';
       }
       updateRoute();
+      updateWind();
     }
 
-    // ---------- Future route & forecast ----------
-    const DEFAULT_WAYPOINTS = [[16.89014, -24.98042]]; // Mindelo, Cape Verde
-    const ROUTE_KEY = 'sefi-route';
-    const STEP_H = 6;              // a projected point every 6 h
-    const FORECAST_DAYS = 7;
-    const MAX_ROUTE_POINTS = 200;  // keeps the table sane at very low speeds
-    let waypoints = loadWaypoints();
-    let routeEditing = false;
-    let speedTouched = false;      // true once the user typed their own speed
+    // ---------- Projected course (straight line ahead of the boat) ----------
+    const AHEAD_HOURS = [12, 24, 36, 48, 60, 72];
+    let routeTouched = false;      // true once the user typed their own course or speed
     let routeTimer = null;
     let routeSeq = 0;              // lets us drop results from older requests
-
-    function loadWaypoints() {
-      try {
-        const w = JSON.parse(localStorage.getItem(ROUTE_KEY));
-        if (Array.isArray(w) && w.length && w.every(p => Array.isArray(p) && isFinite(p[0]) && isFinite(p[1]))) return w;
-      } catch (e) {}
-      return DEFAULT_WAYPOINTS.map(p => [...p]);
-    }
-    function saveWaypoints() {
-      try { localStorage.setItem(ROUTE_KEY, JSON.stringify(waypoints)); } catch (e) {}
-    }
+    const RAD = Math.PI / 180;
 
     function haversineNm(a, b) {
-      const R = 3440.065, rad = Math.PI / 180;
-      const dLat = (b[0] - a[0]) * rad, dLon = (b[1] - a[1]) * rad;
-      const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * rad) * Math.cos(b[0] * rad) * Math.sin(dLon / 2) ** 2;
-      return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+      const dLat = (b[0] - a[0]) * RAD, dLon = (b[1] - a[1]) * RAD;
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * RAD) * Math.cos(b[0] * RAD) * Math.sin(dLon / 2) ** 2;
+      return 2 * 3440.065 * Math.asin(Math.min(1, Math.sqrt(h)));
+    }
+    // Point reached after sailing distNm on a constant initial bearing (great circle).
+    function destination(from, bearingDeg, distNm) {
+      const d = distNm / 3440.065, b = bearingDeg * RAD;
+      const la1 = from[0] * RAD, lo1 = from[1] * RAD;
+      const la2 = Math.asin(Math.sin(la1) * Math.cos(d) + Math.cos(la1) * Math.sin(d) * Math.cos(b));
+      const lo2 = lo1 + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(la1), Math.cos(d) - Math.sin(la1) * Math.sin(la2));
+      return [la2 / RAD, ((lo2 / RAD + 540) % 360) - 180];
     }
 
     // Average speed over the last 24 h of track.json (distance between fixes / elapsed time).
@@ -297,44 +302,16 @@
       if (liveFix && Number(liveFix.speedKts) > 0) return Number(liveFix.speedKts);
       return 5;
     }
-
-    // Point at distance d (nm) along the path, interpolated linearly within each leg.
-    function pointAlong(path, cum, d) {
-      for (let i = 1; i < path.length; i++) {
-        if (d <= cum[i] || i === path.length - 1) {
-          const leg = cum[i] - cum[i - 1];
-          const f = leg > 0 ? Math.min(1, Math.max(0, (d - cum[i - 1]) / leg)) : 1;
-          return [path[i - 1][0] + (path[i][0] - path[i - 1][0]) * f, path[i - 1][1] + (path[i][1] - path[i - 1][1]) * f];
-        }
-      }
-      return path[path.length - 1];
+    const COMPASS16 = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    function compassDeg(name) { const i = COMPASS16.indexOf(String(name || '').toUpperCase()); return i < 0 ? null : i * 22.5; }
+    function defaultCourse() {
+      if (liveFix && isFinite(liveFix.courseDeg)) return Number(liveFix.courseDeg);
+      return liveFix ? compassDeg(liveFix.course) : null;
     }
+    function compass(deg) { return COMPASS16[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16]; }
 
-    function projectRoute(speed) {
-      const path = [[liveFix.lat, liveFix.lon], ...waypoints];
-      const cum = [0];
-      for (let i = 1; i < path.length; i++) cum.push(cum[i - 1] + haversineNm(path[i - 1], path[i]));
-      const total = cum[cum.length - 1];
-      const startMs = new Date(liveFix.timestamp).getTime();
-      const totalH = total / speed;
-      const points = [];
-      for (let h = 0; h < totalH && points.length < MAX_ROUTE_POINTS; h += STEP_H) {
-        points.push({ ll: pointAlong(path, cum, speed * h), ms: startMs + h * 3.6e6, toGo: total - speed * h, first: h === 0 });
-      }
-      const arrivalMs = startMs + totalH * 3.6e6;
-      points.push({ ll: path[path.length - 1], ms: arrivalMs, toGo: 0, arrival: true });
-      return { path, total, totalH, arrivalMs, points };
-    }
-
-    function compass(deg) {
-      const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-      return dirs[Math.round((((deg % 360) + 360) % 360) / 22.5) % 16];
-    }
     function fmtRouteTime(ms) {
       return new Date(ms).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    }
-    function fmtEta(ms) {
-      return new Date(ms).toLocaleString([], { weekday: 'long', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
     }
     function fmtShortCoord(lat, lon) {
       return `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? 'N' : 'S'}, ${Math.abs(lon).toFixed(2)}° ${lon >= 0 ? 'E' : 'W'}`;
@@ -342,7 +319,6 @@
     function sevClass(v, amber, red) {
       return v >= red ? 'text-red-400 font-semibold' : v >= amber ? 'text-amber-300 font-semibold' : '';
     }
-
     // Value at the hour nearest to ms (Open-Meteo times are GMT without a Z), or undefined.
     function nearestHourly(series, ms, key) {
       if (!series || !series.hourly || !series.hourly.time || !series.hourly[key]) return undefined;
@@ -353,57 +329,47 @@
       return v == null ? undefined : v;
     }
 
-    function drawRouteLayer(proj) {
+    function drawRouteLayer(start, points) {
       routeLayer.clearLayers();
-      L.polyline(proj.path, { color: '#10b981', weight: 2.5, opacity: 0.8, dashArray: '6, 8' }).addTo(routeLayer);
-      proj.points.forEach(p => {
-        if (p.arrival || p.first) return;
-        L.circleMarker(p.ll, { radius: 3, fillColor: '#a7f3d0', color: '#064e3b', weight: 1, fillOpacity: 0.9 })
-          .addTo(routeLayer).bindTooltip(fmtRouteTime(p.ms));
-      });
-      waypoints.forEach((w, i) => {
-        const last = i === waypoints.length - 1;
-        L.circleMarker(w, { radius: last ? 7 : 5, fillColor: '#10b981', color: '#0f172a', weight: 2, fillOpacity: 0.95 })
-          .addTo(routeLayer).bindTooltip(last ? 'Destination' : `Waypoint ${i + 1}`);
+      L.polyline([start, ...points.map(p => p.ll)], { color: '#10b981', weight: 2.5, opacity: 0.85, dashArray: '6, 8' }).addTo(routeLayer);
+      points.forEach(p => {
+        L.circleMarker(p.ll, { radius: 4, fillColor: '#a7f3d0', color: '#064e3b', weight: 1.5, fillOpacity: 0.95 })
+          .addTo(routeLayer)
+          .bindTooltip(`+${p.h} h`, { permanent: true, direction: 'right', offset: [6, 0], className: 'ahead-label' })
+          .bindPopup(`<strong>+${p.h} h</strong> · ${fmtRouteTime(p.ms)}<br>${fmtShortCoord(p.ll[0], p.ll[1])} · ${p.dist.toFixed(0)} nm`);
       });
     }
 
-    // wind / waves: undefined = still loading, null = request failed, array = one entry per in-range point.
-    function renderRouteTable(proj, wind, waves) {
+    // wind / waves: undefined = still loading, null = request failed, array = one entry per point.
+    function renderRouteTable(points, wind, waves) {
       const dim = t => `<span class="text-slate-500">${t}</span>`;
       const cell = (data, fn) => data === undefined ? dim('…') : data === null ? dim('n/a') : fn();
-      const rows = proj.points.map(p => {
-        const label = p.arrival ? 'arrival' : p.first ? 'last fix' : '';
-        let windCell, gustCell, waveCell;
-        if (p.i === undefined) {
-          windCell = dim('beyond forecast'); gustCell = waveCell = dim('—');
-        } else {
-          windCell = cell(wind, () => {
-            const ws = nearestHourly(wind[p.i], p.ms, 'wind_speed_10m');
-            const wd = nearestHourly(wind[p.i], p.ms, 'wind_direction_10m');
-            if (ws === undefined) return dim('n/a');
-            return `<span class="${sevClass(ws, 22, 30)}">${ws.toFixed(0)} kts</span>` +
-              (wd !== undefined ? ` <span class="text-slate-400">from ${compass(wd)}</span>` : '');
-          });
-          gustCell = cell(wind, () => {
-            const wg = nearestHourly(wind[p.i], p.ms, 'wind_gusts_10m');
-            return wg === undefined ? dim('n/a') : `${wg.toFixed(0)} kts`;
-          });
-          waveCell = cell(waves, () => {
-            const wh = nearestHourly(waves[p.i], p.ms, 'wave_height');
-            return wh === undefined ? dim('n/a') : `<span class="${sevClass(wh, 2.5, 3.5)}">${wh.toFixed(1)} m</span>`;
-          });
-        }
-        return `<tr class="border-b border-slate-800/70 ${p.arrival ? 'text-emerald-300' : ''}">
-          <td class="py-1.5 pr-3 whitespace-nowrap">${fmtRouteTime(p.ms)}${label ? ` <span class="text-[10px] uppercase tracking-wider text-slate-500">${label}</span>` : ''}</td>
+      document.getElementById('route-table').innerHTML = points.map((p, i) => {
+        const windCell = cell(wind, () => {
+          const ws = nearestHourly(wind[i], p.ms, 'wind_speed_10m');
+          const wd = nearestHourly(wind[i], p.ms, 'wind_direction_10m');
+          if (ws === undefined) return dim('n/a');
+          return `<span class="${sevClass(ws, 22, 30)}">${ws.toFixed(0)} kts</span>` +
+            (wd !== undefined ? ` <span class="text-slate-400">from ${compass(wd)}</span>` : '');
+        });
+        const gustCell = cell(wind, () => {
+          const wg = nearestHourly(wind[i], p.ms, 'wind_gusts_10m');
+          return wg === undefined ? dim('n/a') : `${wg.toFixed(0)} kts`;
+        });
+        const waveCell = cell(waves, () => {
+          const wh = nearestHourly(waves[i], p.ms, 'wave_height');
+          return wh === undefined ? dim('n/a') : `<span class="${sevClass(wh, 2.5, 3.5)}">${wh.toFixed(1)} m</span>`;
+        });
+        return `<tr class="border-b border-slate-800/70">
+          <td class="py-1.5 pr-3 whitespace-nowrap text-emerald-300 font-semibold">+${p.h} h</td>
+          <td class="py-1.5 pr-3 whitespace-nowrap">${fmtRouteTime(p.ms)}</td>
           <td class="py-1.5 pr-3 whitespace-nowrap">${fmtShortCoord(p.ll[0], p.ll[1])}</td>
-          <td class="py-1.5 pr-3 text-right whitespace-nowrap">${p.toGo.toFixed(0)} nm</td>
+          <td class="py-1.5 pr-3 text-right whitespace-nowrap">${p.dist.toFixed(0)} nm</td>
           <td class="py-1.5 pr-3 whitespace-nowrap">${windCell}</td>
           <td class="py-1.5 pr-3 text-right whitespace-nowrap">${gustCell}</td>
           <td class="py-1.5 text-right whitespace-nowrap">${waveCell}</td>
         </tr>`;
-      });
-      document.getElementById('route-table').innerHTML = rows.join('');
+      }).join('');
     }
 
     async function updateRoute() {
@@ -411,55 +377,110 @@
       const seq = ++routeSeq;
       const summary = document.getElementById('route-summary');
       if (!map || !liveFix) { summary.textContent = 'Waiting for position…'; return; }
+      const courseInput = document.getElementById('route-course');
       const speedInput = document.getElementById('route-speed');
-      if (!speedTouched) speedInput.value = defaultSpeed().toFixed(1);
+      if (!routeTouched) {
+        const c = defaultCourse();
+        courseInput.value = c == null ? '' : Math.round(c);
+        speedInput.value = defaultSpeed().toFixed(1);
+      }
+      const course = parseFloat(courseInput.value);
       const speed = parseFloat(speedInput.value);
-      if (!(speed >= 0.5)) {
+      if (!isFinite(course) || !(speed >= 0.5)) {
         routeLayer.clearLayers();
-        summary.textContent = 'Enter a speed of at least 0.5 kts.';
         document.getElementById('route-table').innerHTML = '';
+        summary.textContent = !isFinite(course) ? 'No course from the boat yet. Enter one above.' : 'Enter a speed of at least 0.5 kts.';
         return;
       }
-      const proj = projectRoute(speed);
-      drawRouteLayer(proj);
-      const days = proj.totalH / 24;
-      summary.textContent = `${proj.total.toFixed(0)} nm to go at ${speed.toFixed(1)} kts → ETA ${fmtEta(proj.arrivalMs)} (${days >= 1 ? `${days.toFixed(1)} days` : `${proj.totalH.toFixed(1)} h`})`;
+      const start = [liveFix.lat, liveFix.lon];
+      const startMs = new Date(liveFix.timestamp).getTime();
+      const points = AHEAD_HOURS.map(h => ({ h, dist: speed * h, ms: startMs + h * 3.6e6, ll: destination(start, course, speed * h) }));
+      drawRouteLayer(start, points);
+      summary.textContent = `Heading ${Math.round(course)}° (${compass(course)}) at ${speed.toFixed(1)} kts → ~${points[points.length - 1].dist.toFixed(0)} nm in 72 h`;
+      renderRouteTable(points, undefined, undefined);
 
-      // Weather: ONE request per API covering every point within the next 7 days.
-      // forecast_days counts from 00:00 GMT today, so the last usable hour is 23:00 GMT on day 7.
-      const todayUtc = new Date(); todayUtc.setUTCHours(0, 0, 0, 0);
-      const horizon = todayUtc.getTime() + FORECAST_DAYS * 864e5 - 0.5 * 3.6e6;
-      const inRange = proj.points.filter(p => p.ms <= horizon);
-      inRange.forEach((p, i) => { p.i = i; });
-      renderRouteTable(proj, undefined, undefined);
-      if (!inRange.length) return;
-      const lats = inRange.map(p => p.ll[0].toFixed(3)).join(',');
-      const lons = inRange.map(p => p.ll[1].toFixed(3)).join(',');
-      // Several points -> array of results; one point -> a single object.
+      // One request per API for all points; one point would come back as an object, several as an array.
+      const lats = points.map(p => p.ll[0].toFixed(3)).join(',');
+      const lons = points.map(p => p.ll[1].toFixed(3)).join(',');
       const get = url => fetch(url)
         .then(r => r.ok ? r.json() : Promise.reject(r.status))
         .then(d => Array.isArray(d) ? d : [d])
         .catch(() => null);
       const [wind, waves] = await Promise.all([
-        get(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kn&forecast_days=${FORECAST_DAYS}&timezone=GMT`),
-        get(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height&forecast_days=${FORECAST_DAYS}&timezone=GMT`)
+        get(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kn&forecast_days=5&timezone=GMT`),
+        get(`https://marine-api.open-meteo.com/v1/marine?latitude=${lats}&longitude=${lons}&hourly=wave_height&forecast_days=5&timezone=GMT`)
       ]);
       if (seq !== routeSeq) return; // a newer update has started; ignore these results
-      renderRouteTable(proj, wind, waves);
+      renderRouteTable(points, wind, waves);
     }
     function scheduleRouteUpdate() {
       clearTimeout(routeTimer);
       routeTimer = setTimeout(updateRoute, 400);
     }
-    function setRouteEditing(on) {
-      routeEditing = on;
-      const btn = document.getElementById('btn-route-edit');
-      btn.textContent = on ? 'Done editing' : 'Edit route';
+
+    // ---------- Live wind arrows over the map ----------
+    let windOn = true, windTimer = null, windSeq = 0;
+    function windColor(kts) {
+      return kts >= 30 ? '#f87171' : kts >= 22 ? '#fbbf24' : kts >= 12 ? '#34d399' : '#7dd3fc';
+    }
+    function windIcon(kts, fromDeg) {
+      const c = windColor(kts);
+      // The arrow points where the wind blows TO (from + 180°).
+      return L.divIcon({
+        className: 'wind-icon',
+        iconSize: [34, 34], iconAnchor: [17, 17],
+        html: `<div class="wind-arrow" style="transform: rotate(${(fromDeg + 180) % 360}deg)">
+                 <svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2 L18 12 L13.5 11 L13.5 22 L10.5 22 L10.5 11 L6 12 Z" fill="${c}" stroke="#0f172a" stroke-width="1"/></svg>
+               </div><span class="wind-kts" style="color:${c}">${Math.round(kts)}</span>`
+      });
+    }
+    async function updateWind() {
+      clearTimeout(windTimer);
+      const seq = ++windSeq;
+      if (!map) return;
+      if (!windOn) { windLayer.clearLayers(); return; }
+      const size = map.getSize();
+      const cols = Math.max(3, Math.min(8, Math.round(size.x / 130)));
+      const rows = Math.max(3, Math.min(6, Math.round(size.y / 90)));
+      const pts = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const ll = map.containerPointToLatLng([size.x * (c + 0.5) / cols, size.y * (r + 0.5) / rows]);
+          if (Math.abs(ll.lat) > 85) continue;
+          pts.push({ draw: [ll.lat, ll.lng], ask: ll.wrap() });
+        }
+      }
+      if (!pts.length) return;
+      const lats = pts.map(p => p.ask.lat.toFixed(2)).join(',');
+      const lons = pts.map(p => p.ask.lng.toFixed(2)).join(',');
+      let data = null;
+      try {
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&current=wind_speed_10m,wind_direction_10m&wind_speed_unit=kn&timezone=GMT`);
+        if (r.ok) { data = await r.json(); if (!Array.isArray(data)) data = [data]; }
+      } catch (e) {}
+      if (seq !== windSeq || !windOn) return; // superseded by a newer pan/zoom
+      windLayer.clearLayers();
+      if (!data) { document.getElementById('wind-legend-time').textContent = 'wind unavailable'; return; }
+      data.forEach((d, i) => {
+        const cur = d && d.current;
+        if (!cur || cur.wind_speed_10m == null || cur.wind_direction_10m == null || !pts[i]) return;
+        L.marker(pts[i].draw, { icon: windIcon(cur.wind_speed_10m, cur.wind_direction_10m), interactive: false, keyboard: false }).addTo(windLayer);
+      });
+      const t = data[0] && data[0].current && data[0].current.time;
+      document.getElementById('wind-legend-time').textContent = t ? `as of ${new Date(t + 'Z').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '';
+    }
+    function scheduleWindUpdate() {
+      clearTimeout(windTimer);
+      windTimer = setTimeout(updateWind, 500);
+    }
+    function setWindOn(on) {
+      windOn = on;
+      const btn = document.getElementById('btn-wind');
       btn.className = on
-        ? 'px-2.5 py-1 rounded-lg font-medium bg-emerald-500 text-slate-950 hover:bg-emerald-400'
-        : 'px-2.5 py-1 rounded-lg font-medium bg-slate-800 text-emerald-300 hover:bg-slate-700';
-      document.getElementById('route-edit-hint').classList.toggle('hidden', !on);
-      map.getContainer().style.cursor = on ? 'crosshair' : '';
+        ? 'px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-600 text-white'
+        : 'px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:text-white';
+      document.getElementById('wind-legend').style.display = on ? '' : 'none';
+      updateWind();
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -469,15 +490,10 @@
       document.getElementById('btn-refresh').addEventListener('click', loadAllData);
       document.getElementById('btn-tile-ocean').addEventListener('click', () => { map.removeLayer(satLayer); oceanLayer.addTo(map); });
       document.getElementById('btn-tile-sat').addEventListener('click', () => { map.removeLayer(oceanLayer); satLayer.addTo(map); });
-      document.getElementById('route-speed').addEventListener('input', () => { speedTouched = true; scheduleRouteUpdate(); });
-      document.getElementById('btn-route-avg').addEventListener('click', () => { speedTouched = false; scheduleRouteUpdate(); });
-      document.getElementById('btn-route-edit').addEventListener('click', () => setRouteEditing(!routeEditing));
-      document.getElementById('btn-route-undo').addEventListener('click', () => {
-        if (waypoints.length > 1) { waypoints.pop(); saveWaypoints(); scheduleRouteUpdate(); }
-      });
-      document.getElementById('btn-route-reset').addEventListener('click', () => {
-        waypoints = DEFAULT_WAYPOINTS.map(p => [...p]); saveWaypoints(); scheduleRouteUpdate();
-      });
+      document.getElementById('route-speed').addEventListener('input', () => { routeTouched = true; scheduleRouteUpdate(); });
+      document.getElementById('route-course').addEventListener('input', () => { routeTouched = true; scheduleRouteUpdate(); });
+      document.getElementById('btn-route-auto').addEventListener('click', () => { routeTouched = false; scheduleRouteUpdate(); });
+      document.getElementById('btn-wind').addEventListener('click', () => setWindOn(!windOn));
       document.getElementById('btn-center-sefi').addEventListener('click', () => liveFix && map.flyTo([liveFix.lat, liveFix.lon], 6, { duration: 0.6 }));
     });
   </script>

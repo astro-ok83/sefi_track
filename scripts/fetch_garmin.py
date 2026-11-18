@@ -1,6 +1,6 @@
 """Fetch the latest S/V Sefi position from Garmin MapShare and write data/*.json.
 
-Runs from GitHub Actions every ~20 minutes. Never invents data: if the feed
+Runs from GitHub Actions every ~5 minutes. Never invents data: if the feed
 fails, the old position is kept and 'feedError' is set so the site can show it.
 """
 import json

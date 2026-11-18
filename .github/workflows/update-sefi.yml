@@ -1,8 +1,8 @@
-name: Update Sefi Position Every 20 Min
+name: Update Sefi Position Every 5 Min
 
 on:
   schedule:
-    - cron: "*/20 * * * *"   # GitHub may delay scheduled runs by 5-15 min
+    - cron: "*/5 * * * *"    # GitHub may delay or skip scheduled runs, especially at busy times
   workflow_dispatch:          # lets you run it by hand from the Actions tab
 
 permissions:
