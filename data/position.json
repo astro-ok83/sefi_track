@@ -1,16 +1,15 @@
 {
   "boat": "S/V Sefi",
-  "tracker": "josef avrunin",
   "mmsi": "261006251",
-  "lat": 24.409218,
-  "lon": -20.144205,
-  "speedKts": 6.57,
-  "course": "SSW",
-  "elevationFt": 14.34,
-  "battery": "Normal",
-  "messages": 0,
-  "timestamp": "2026-11-18T07:36:00Z",
-  "displayTime": "Nov 18, 09:36 AM (UTC+2)",
-  "status": "ALL GOOD",
-  "source": "Garmin MapShare"
+  "lat": 24.283593,
+  "lon": -20.225336,
+  "speedKts": 4.9,
+  "course": "SW",
+  "timestamp": "2026-11-18T08:56:00Z",
+  "source": "Garmin MapShare",
+  "checkedAt": "2026-11-18T08:59:57Z",
+  "courseDeg": 225,
+  "emergency": false,
+  "lastMessage": "",
+  "lastMessageTime": ""
 }
