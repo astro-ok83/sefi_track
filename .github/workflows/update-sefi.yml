@@ -1,8 +1,8 @@
-name: Update Sefi Position Every 5 Min
+name: Update Sefi Position
 
 on:
   schedule:
-    - cron: "*/5 * * * *"    # GitHub may delay or skip scheduled runs, especially at busy times
+    - cron: "*/30 * * * *"   # backup only; cron-job.org triggers workflow_dispatch every 5 min
   workflow_dispatch:          # lets you run it by hand from the Actions tab
 
 permissions:
