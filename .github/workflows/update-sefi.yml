@@ -18,14 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: One-time cleanup (move files out of sefi_track/ subfolder)
-        run: |
-          if [ -d sefi_track ]; then
-            cp -r sefi_track/. .
-            rm -rf sefi_track scripts/__pycache__
-            echo "Moved files from sefi_track/ to repo root."
-          fi
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
