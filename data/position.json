@@ -1,16 +1,15 @@
 {
   "boat": "S/V Sefi",
   "mmsi": "261006251",
-  "lat": 23.508768,
-  "lon": -20.722875,
-  "speedKts": 6.0,
-  "course": "SW",
-  "timestamp": "2026-11-18T17:26:00Z",
+  "lat": 23.491655,
+  "lon": -20.73457,
+  "speedKts": 7.1,
+  "course": "SSW",
+  "timestamp": "2026-11-18T17:36:00Z",
   "source": "Garmin MapShare",
-  "checkedAt": "2026-11-18T17:35:19Z",
-  "courseDeg": 225,
+  "checkedAt": "2026-11-18T17:40:22Z",
+  "courseDeg": 202,
   "emergency": false,
   "lastMessage": "",
-  "lastMessageTime": "",
-  "feedError": "TimeoutError: The read operation timed out"
+  "lastMessageTime": ""
 }
