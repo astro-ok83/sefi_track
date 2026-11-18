@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S/V Sefi — Live Status &amp; Map</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #090e1a; color: #f8fafc; }
+    .font-mono-num { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+    .leaflet-container { background: #0f172a; font-family: 'Inter', sans-serif; }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #1e293b; color: #f8fafc; border: 1px solid #334155; }
+    .pulse-dot { display: inline-block; width: 12px; height: 12px; border-radius: 9999px; background: #10b981; box-shadow: 0 0 0 0 rgba(16,185,129,0.75); animation: pulse-green 2s infinite; }
+    @keyframes pulse-green { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.75); } 70% { box-shadow: 0 0 0 12px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); } }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-5 space-y-4">
+    <section id="hero" class="rounded-2xl border-2 p-4 sm:p-5 shadow-lg bg-slate-900 border-slate-600">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0">
+            <span id="status-dot" class="pulse-dot"></span>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="status-label" class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-300">Loading…</span>
+              <span class="text-sm sm:text-base font-semibold text-white">· S/V Sefi</span>
+            </div>
+            <p id="hero-summary" class="text-xs sm:text-sm text-emerald-100/90 mt-0.5">
+              Loading latest position…
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <a href="https://share.garmin.com/josefavrunin" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition">
+            Open Live Garmin ↗
+          </a>
+          <button id="btn-refresh" type="button" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition">
+            Refresh Now
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+        <div class="text-[11px] uppercase tracking-wider text-slate-400">Live Position</div>
+        <div id="kpi-coords" class="text-sm sm:text-base font-bold text-white font-mono-num mt-1">24.4092° N, 20.1442° W</div>
+        <div id="kpi-time" class="text-xs text-slate-400 mt-0.5">Nov 18, 09:36 AM (UTC+2)</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+        <div class="text-[11px] uppercase tracking-wider text-slate-400">Speed &amp; Course</div>
+        <div id="kpi-speed" class="text-sm sm:text-base font-bold text-white font-mono-num mt-1">6.57 kts · SSW</div>
+        <div id="kpi-age" class="text-xs text-slate-400 mt-0.5">&nbsp;</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+        <div class="text-[11px] uppercase tracking-wider text-slate-400">Weather Along Track</div>
+        <div id="kpi-weather" class="text-sm sm:text-base font-bold text-white font-mono-num mt-1">Loading...</div>
+        <div id="kpi-weather-sub" class="text-xs text-slate-400 mt-0.5">Open-Meteo Marine</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
+        <div class="text-[11px] uppercase tracking-wider text-slate-400">Last Message From Boat</div>
+        <div id="kpi-msg" class="text-sm sm:text-base font-bold text-white mt-1 break-words">—</div>
+        <div id="kpi-msg-time" class="text-xs text-slate-400 mt-0.5">via inReach</div>
+      </div>
+    </section>
+
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+        <span class="text-sm font-semibold text-white">Live Position &amp; Track</span>
+        <div class="flex items-center gap-1.5">
+          <button id="btn-tile-ocean" type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-600 text-white">Ocean</button>
+          <button id="btn-tile-sat" type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-slate-300 hover:text-white">Satellite</button>
+          <button id="btn-center-sefi" type="button" class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 text-sky-300 hover:bg-slate-700">Center on Sefi</button>
+        </div>
+      </div>
+      <div id="nautical-map" class="w-full" style="height: 430px;"></div>
+    </section>
+
+    <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-slate-400 font-medium mr-1">AIS &amp; Trackers:</span>
+        <a href="https://www.marinetraffic.com/ar/ais/details/ships/shipid:9590915" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">MarineTraffic ↗</a>
+        <a href="https://www.marineradar.com/vessel/mmsi-261006251/sefi" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">MarineRadar ↗</a>
+        <a href="https://www.vesselfinder.com/?mmsi=261006251" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition">VesselFinder ↗</a>
+      </div>
+      <span id="sync-note" class="text-slate-400 font-mono-num">Synced via GitHub Actions</span>
+    </section>
+  </main>
+
+  <script>
+    let liveFix = null;
+    let track = [];
+    let map, oceanLayer, satLayer, layerGroup, firstDraw = true;
+    const STALE_HOURS = 4;   // amber if no new Garmin fix for this long
+    const BOT_LATE_MIN = 90; // amber if the GitHub Action itself stopped running
+
+    function initMap() {
+      map = L.map('nautical-map', { center: [24.4, -20.1], zoom: 5 });
+      oceanLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 13 }).addTo(map);
+      satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 17 });
+      layerGroup = L.layerGroup().addTo(map);
+    }
+
+    function fmtCoord(lat, lon) {
+      return `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`;
+    }
+    function fmtTime(iso) {
+      if (!iso) return '—';
+      return new Date(iso).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    }
+    function ago(iso) {
+      const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+      if (min < 60) return `${min} min ago`;
+      const h = min / 60;
+      return h < 48 ? `${h.toFixed(1)} h ago` : `${(h / 24).toFixed(1)} days ago`;
+    }
+
+    function drawMap() {
+      if (!map || !liveFix) return;
+      layerGroup.clearLayers();
+      const current = [liveFix.lat, liveFix.lon];
+      const pts = track.map(p => [p.lat, p.lon]);
+      if (pts.length > 1) L.polyline(pts, { color: '#38bdf8', weight: 3 }).addTo(layerGroup);
+      const mindelo = [16.89014, -24.98042];
+      L.polyline([current, mindelo], { color: '#10b981', weight: 2, opacity: 0.5, dashArray: '4, 8' }).addTo(layerGroup);
+      L.circleMarker(mindelo, { radius: 6, fillColor: '#10b981', color: '#0f172a', weight: 2, fillOpacity: 0.95 }).addTo(layerGroup).bindPopup('Mindelo, Cape Verde (planned)');
+      L.circleMarker(current, { radius: 9, fillColor: liveFix.emergency ? '#ef4444' : '#10b981', color: '#ffffff', weight: 3, fillOpacity: 1 }).addTo(layerGroup)
+        .bindPopup(`<strong>S/V Sefi</strong><br>${fmtCoord(liveFix.lat, liveFix.lon)}<br>${liveFix.speedKts ?? '?'} kts · ${liveFix.course ?? ''}<br>${fmtTime(liveFix.timestamp)}`).openPopup();
+      if (firstDraw) { map.setView(current, 6); firstDraw = false; }
+    }
+
+    function setStatus(level, label) {
+      const styles = {
+        ok:    ['bg-gradient-to-r from-emerald-950/90 via-emerald-900/50 to-slate-900 border-emerald-500/60', 'text-emerald-300', '#10b981'],
+        warn:  ['bg-gradient-to-r from-amber-950/90 via-amber-900/40 to-slate-900 border-amber-500/70', 'text-amber-300', '#f59e0b'],
+        alarm: ['bg-gradient-to-r from-red-950/90 via-red-900/50 to-slate-900 border-red-500', 'text-red-300', '#ef4444'],
+      }[level];
+      document.getElementById('hero').className = `rounded-2xl border-2 p-4 sm:p-5 shadow-lg ${styles[0]}`;
+      const lbl = document.getElementById('status-label');
+      lbl.className = `text-xl sm:text-2xl font-extrabold tracking-tight ${styles[1]}`;
+      lbl.textContent = label;
+      document.getElementById('status-dot').style.background = styles[2];
+    }
+
+    function updateUi() {
+      if (!liveFix) { setStatus('warn', 'NO DATA YET'); return; }
+      const fixAgeH = (Date.now() - new Date(liveFix.timestamp).getTime()) / 3.6e6;
+      const botAgeMin = liveFix.checkedAt ? (Date.now() - new Date(liveFix.checkedAt).getTime()) / 6e4 : Infinity;
+      let summary = `${liveFix.speedKts ?? '?'} kts ${liveFix.course ?? ''} · last fix ${ago(liveFix.timestamp)}`;
+      if (liveFix.emergency) {
+        setStatus('alarm', 'SOS ACTIVE');
+        summary = 'The inReach is in emergency mode. Open the Garmin page and contact the family / MRCC.';
+      } else if (fixAgeH > STALE_HOURS) {
+        setStatus('warn', `NO FIX FOR ${Math.floor(fixAgeH)} H`);
+        summary += ' · tracker may be off or out of power; not necessarily a problem';
+      } else {
+        setStatus('ok', 'TRACKING · NO SOS');
+      }
+      if (liveFix.feedError) summary += ' · ⚠ Garmin feed error on last check';
+      else if (botAgeMin > BOT_LATE_MIN) summary += ` · ⚠ updater last ran ${ago(liveFix.checkedAt)}`;
+      document.getElementById('hero-summary').textContent = summary;
+      document.getElementById('kpi-coords').textContent = fmtCoord(liveFix.lat, liveFix.lon);
+      document.getElementById('kpi-time').textContent = fmtTime(liveFix.timestamp);
+      document.getElementById('kpi-speed').textContent = `${liveFix.speedKts ?? '?'} kts · ${liveFix.course ?? ''}${liveFix.courseDeg != null ? ` (${liveFix.courseDeg}°)` : ''}`;
+      document.getElementById('kpi-age').textContent = ago(liveFix.timestamp);
+      document.getElementById('kpi-msg').textContent = liveFix.lastMessage || '—';
+      document.getElementById('kpi-msg-time').textContent = liveFix.lastMessageTime ? fmtTime(liveFix.lastMessageTime) : 'via inReach';
+      if (liveFix.checkedAt) document.getElementById('sync-note').textContent = `Checked Garmin ${ago(liveFix.checkedAt)}`;
+    }
+
+    async function loadAllData() {
+      try {
+        const [pRes, tRes] = await Promise.all([
+          fetch(`./data/position.json?t=${Date.now()}`, { cache: 'no-store' }),
+          fetch(`./data/track.json?t=${Date.now()}`, { cache: 'no-store' })
+        ]);
+        if (pRes.ok) liveFix = await pRes.json();
+        if (tRes.ok) track = await tRes.json();
+      } catch (e) {}
+      if (!liveFix) { updateUi(); return; }
+      updateUi();
+      drawMap();
+      try {
+        const [mRes, aRes] = await Promise.all([
+          fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${liveFix.lat}&longitude=${liveFix.lon}&current=wave_height,wave_period`),
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${liveFix.lat}&longitude=${liveFix.lon}&current=wind_speed_10m,wind_direction_10m,temperature_2m&wind_speed_unit=kn`)
+        ]);
+        if (mRes.ok && aRes.ok) {
+          const mData = await mRes.json();
+          const aData = await aRes.json();
+          document.getElementById('kpi-weather').textContent = `${aData.current.wind_speed_10m.toFixed(0)} kts (${aData.current.wind_direction_10m}°) · ${mData.current.wave_height.toFixed(1)} m`;
+          document.getElementById('kpi-weather-sub').textContent = `Live Open-Meteo · Swell ${mData.current.wave_period.toFixed(0)} s · ${aData.current.temperature_2m.toFixed(0)} °C`;
+        }
+      } catch (e) {
+        document.getElementById('kpi-weather').textContent = 'Unavailable';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initMap();
+      loadAllData();
+      setInterval(loadAllData, 5 * 60 * 1000); // re-check every 5 min while open
+      document.getElementById('btn-refresh').addEventListener('click', loadAllData);
+      document.getElementById('btn-tile-ocean').addEventListener('click', () => { map.removeLayer(satLayer); oceanLayer.addTo(map); });
+      document.getElementById('btn-tile-sat').addEventListener('click', () => { map.removeLayer(oceanLayer); satLayer.addTo(map); });
+      document.getElementById('btn-center-sefi').addEventListener('click', () => liveFix && map.flyTo([liveFix.lat, liveFix.lon], 6, { duration: 0.6 }));
+    });
+  </script>
+</body>
+</html>
