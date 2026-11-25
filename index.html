@@ -54,6 +54,14 @@
       </div>
     </section>
 
+    <section id="wx-alert" class="hidden rounded-2xl border-2 p-3.5 sm:p-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <span id="wx-alert-title" class="text-sm sm:text-base font-extrabold tracking-tight"></span>
+        <span id="wx-alert-time" class="text-[11px] text-slate-400"></span>
+      </div>
+      <ul id="wx-alert-list" class="mt-1.5 space-y-0.5 text-xs sm:text-sm text-slate-200 list-disc pl-5"></ul>
+    </section>
+
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5">
         <div class="text-[11px] uppercase tracking-wider text-slate-400">Live Position</div>
@@ -257,6 +265,38 @@
       }
       updateRoute();
       updateWind();
+      loadWeatherAlerts();
+    }
+
+    // Storm / gale alerts computed hourly by the GitHub Action (scripts/fetch_weather.py).
+    async function loadWeatherAlerts() {
+      const box = document.getElementById('wx-alert');
+      let wx = null;
+      try {
+        const r = await fetch(`./data/weather.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (r.ok) wx = await r.json();
+      } catch (e) {}
+      if (!wx || !wx.fetchedAt) { box.classList.add('hidden'); return; }
+      const alerts = Array.isArray(wx.alerts) ? wx.alerts : [];
+      const storms = (wx.tropical && wx.tropical.activeStorms) || [];
+      const style = {
+        WARNING: ['border-red-500 bg-red-950/60', 'text-red-300', '⚠ WEATHER WARNING'],
+        CAUTION: ['border-amber-500/70 bg-amber-950/50', 'text-amber-300', '⚠ WEATHER CAUTION'],
+        OK:      ['border-emerald-700/60 bg-emerald-950/30', 'text-emerald-300', '✓ No storm or gale signals near Sefi'],
+      }[wx.level] || ['border-slate-700 bg-slate-900', 'text-slate-300', 'Weather check'];
+      box.className = `rounded-2xl border-2 p-3.5 sm:p-4 ${style[0]}`;
+      const title = document.getElementById('wx-alert-title');
+      title.className = `text-sm sm:text-base font-extrabold tracking-tight ${style[1]}`;
+      title.textContent = style[2];
+      document.getElementById('wx-alert-time').textContent =
+        `Checked ${ago(wx.fetchedAt)} · Open-Meteo + NHC` + (wx.errors && Object.keys(wx.errors).length ? ` · some sources failed (${Object.keys(wx.errors).join(', ')})` : '');
+      const esc = t => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      const items = alerts.map(a => `<li><span class="${a.level === 'WARNING' ? 'text-red-300' : 'text-amber-200'} font-semibold">${esc(a.level)}</span> · ${esc(a.message)}</li>`);
+      if (!alerts.length) {
+        const m = wx.max24h || {};
+        items.push(`<li>Next 24 h max: wind ${m.windKts ?? '?'} kts, gusts ${m.gustKts ?? '?'} kts, waves ${m.waveM ?? '?'} m · ${storms.length ? storms.length + ' active tropical system(s), none near her route' : 'no active Atlantic tropical systems'}</li>`);
+      }
+      document.getElementById('wx-alert-list').innerHTML = items.join('');
     }
 
     // ---------- Projected course (straight line ahead of the boat) ----------
