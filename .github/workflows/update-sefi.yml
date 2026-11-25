@@ -25,6 +25,10 @@ jobs:
       - name: Fetch latest Garmin position
         run: python scripts/fetch_garmin.py
 
+      - name: Fetch weather & storm warnings (hourly)
+        run: python scripts/fetch_weather.py
+        continue-on-error: true   # never let a weather outage block the position update
+
       - name: Commit if changed
         run: |
           git config user.name  "sefi-bot"
@@ -37,3 +41,4 @@ jobs:
             git pull --rebase
             git push
           fi
+          
