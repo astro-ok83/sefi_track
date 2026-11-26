@@ -1,13 +1,13 @@
 {
-  "fetchedAt": "2026-11-26T10:00:36Z",
+  "fetchedAt": "2026-11-26T11:00:36Z",
   "boat": {
-    "lat": 16.787625,
-    "lon": -27.541888,
-    "fix": "2026-11-26T09:56:15Z"
+    "lat": 16.76961,
+    "lon": -27.662201,
+    "fix": "2026-11-26T10:56:15Z"
   },
   "projection": {
-    "courseDeg": 248,
-    "speedKts": 6.3,
+    "courseDeg": 270,
+    "speedKts": 6.5,
     "note": "straight line on current course at 24 h average speed"
   },
   "thresholds": {
