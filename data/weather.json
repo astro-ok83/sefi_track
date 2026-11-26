@@ -1,9 +1,9 @@
 {
-  "fetchedAt": "2026-11-26T17:00:38Z",
+  "fetchedAt": "2026-11-26T18:00:36Z",
   "boat": {
-    "lat": 16.712296,
-    "lon": -28.341228,
-    "fix": "2026-11-26T16:56:15Z"
+    "lat": 16.699143,
+    "lon": -28.451028,
+    "fix": "2026-11-26T17:56:15Z"
   },
   "projection": {
     "courseDeg": 270,
@@ -37,8 +37,8 @@
     "activeStorms": [],
     "source": "NHC CurrentStorms.json",
     "outlook": {
-      "issued": "Thu, 26 Nov 2026 11:21:36 +0000",
-      "text": "802 ABNT20 KNHC 261121 TWOAT Tropical Weather Outlook NWS National Hurricane Center Miami FL 700 AM EST Thu Nov 26 2026 For the North Atlantic...Caribbean Sea and the Gulf of America: Tropical cyclone formation is not expected during the next 7 days. $$ Forecaster Cangialosi",
+      "issued": "Thu, 26 Nov 2026 17:14:42 +0000",
+      "text": "000 ABNT20 KNHC 261714 TWOAT Tropical Weather Outlook NWS National Hurricane Center Miami FL 100 PM EST Thu Nov 26 2026 For the North Atlantic...Caribbean Sea and the Gulf of America: Tropical cyclone formation is not expected during the next 7 days. $$ Forecaster Cangialosi",
       "formationChances": []
     }
   },
