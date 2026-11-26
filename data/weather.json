@@ -1,12 +1,12 @@
 {
-  "fetchedAt": "2026-11-26T04:10:31Z",
+  "fetchedAt": "2026-11-26T05:10:21Z",
   "boat": {
-    "lat": 16.855676,
-    "lon": -26.832475,
-    "fix": "2026-11-26T04:06:15Z"
+    "lat": 16.848715,
+    "lon": -26.944163,
+    "fix": "2026-11-26T05:06:15Z"
   },
   "projection": {
-    "courseDeg": 248,
+    "courseDeg": 270,
     "speedKts": 5.0,
     "note": "straight line on current course at 24 h average speed"
   },
@@ -29,16 +29,214 @@
       300
     ]
   },
-  "alerts": [],
-  "errors": {
-    "openMeteo": "URLError: <urlopen error _ssl.c:1001: The handshake operation timed out>"
+  "alerts": [
+    {
+      "level": "CAUTION",
+      "type": "squalls",
+      "message": "High CAPE 2790 J/kg at +0 h - squalls/thunderstorms possible"
+    }
+  ],
+  "errors": {},
+  "now": {
+    "h": 0,
+    "time": "2026-11-26T05:00:00Z",
+    "lat": 16.849,
+    "lon": -26.944,
+    "distNm": 0,
+    "windKts": 16,
+    "gustKts": 20,
+    "windFromDeg": 33,
+    "windFrom": "NNE",
+    "pressureHpa": 1015,
+    "precipMm": 0.0,
+    "cape": 2790,
+    "tempC": 26,
+    "waveM": 1.9,
+    "wavePeriodS": 9,
+    "swellM": 1.0
+  },
+  "ahead": [
+    {
+      "h": 0,
+      "time": "2026-11-26T05:00:00Z",
+      "lat": 16.849,
+      "lon": -26.944,
+      "distNm": 0,
+      "windKts": 16,
+      "gustKts": 20,
+      "windFromDeg": 33,
+      "windFrom": "NNE",
+      "pressureHpa": 1015,
+      "precipMm": 0.0,
+      "cape": 2790,
+      "tempC": 26,
+      "waveM": 1.9,
+      "wavePeriodS": 9,
+      "swellM": 1.0
+    },
+    {
+      "h": 6,
+      "time": "2026-11-26T11:00:00Z",
+      "lat": 16.848,
+      "lon": -27.471,
+      "distNm": 30,
+      "windKts": 17,
+      "gustKts": 22,
+      "windFromDeg": 49,
+      "windFrom": "NE",
+      "pressureHpa": 1017,
+      "precipMm": 0.0,
+      "cape": 2400,
+      "tempC": 26,
+      "waveM": 2.1,
+      "wavePeriodS": 9,
+      "swellM": 1.2
+    },
+    {
+      "h": 12,
+      "time": "2026-11-26T17:00:00Z",
+      "lat": 16.846,
+      "lon": -27.997,
+      "distNm": 61,
+      "windKts": 14,
+      "gustKts": 18,
+      "windFromDeg": 63,
+      "windFrom": "ENE",
+      "pressureHpa": 1015,
+      "precipMm": 0.0,
+      "cape": 2680,
+      "tempC": 26,
+      "waveM": 2.1,
+      "wavePeriodS": 9,
+      "swellM": 1.2
+    },
+    {
+      "h": 18,
+      "time": "2026-11-26T23:00:00Z",
+      "lat": 16.843,
+      "lon": -28.524,
+      "distNm": 91,
+      "windKts": 15,
+      "gustKts": 19,
+      "windFromDeg": 51,
+      "windFrom": "NE",
+      "pressureHpa": 1016,
+      "precipMm": 0.0,
+      "cape": 2320,
+      "tempC": 26,
+      "waveM": 2.1,
+      "wavePeriodS": 8,
+      "swellM": 1.7
+    },
+    {
+      "h": 24,
+      "time": "2026-11-27T05:00:00Z",
+      "lat": 16.838,
+      "lon": -29.051,
+      "distNm": 121,
+      "windKts": 12,
+      "gustKts": 17,
+      "windFromDeg": 59,
+      "windFrom": "ENE",
+      "pressureHpa": 1015,
+      "precipMm": 0.0,
+      "cape": 1500,
+      "tempC": 26,
+      "waveM": 1.9,
+      "wavePeriodS": 8,
+      "swellM": 1.2
+    },
+    {
+      "h": 36,
+      "time": "2026-11-27T17:00:00Z",
+      "lat": 16.825,
+      "lon": -30.104,
+      "distNm": 182,
+      "windKts": 8,
+      "gustKts": 11,
+      "windFromDeg": 50,
+      "windFrom": "NE",
+      "pressureHpa": 1014,
+      "precipMm": 0.0,
+      "cape": 1310,
+      "tempC": 26,
+      "waveM": 1.8,
+      "wavePeriodS": 8,
+      "swellM": 1.3
+    },
+    {
+      "h": 48,
+      "time": "2026-11-28T05:00:00Z",
+      "lat": 16.806,
+      "lon": -31.157,
+      "distNm": 242,
+      "windKts": 7,
+      "gustKts": 10,
+      "windFromDeg": 49,
+      "windFrom": "NE",
+      "pressureHpa": 1015,
+      "precipMm": 0.0,
+      "cape": 860,
+      "tempC": 25,
+      "waveM": 1.6,
+      "wavePeriodS": 8,
+      "swellM": 1.4
+    },
+    {
+      "h": 60,
+      "time": "2026-11-28T17:00:00Z",
+      "lat": 16.782,
+      "lon": -32.209,
+      "distNm": 303,
+      "windKts": 4,
+      "gustKts": 7,
+      "windFromDeg": 62,
+      "windFrom": "ENE",
+      "pressureHpa": 1015,
+      "precipMm": 0.0,
+      "cape": 620,
+      "tempC": 26,
+      "waveM": 1.5,
+      "wavePeriodS": 8,
+      "swellM": 1.3
+    },
+    {
+      "h": 72,
+      "time": "2026-11-29T05:00:00Z",
+      "lat": 16.752,
+      "lon": -33.262,
+      "distNm": 363,
+      "windKts": 9,
+      "gustKts": 12,
+      "windFromDeg": 59,
+      "windFrom": "ENE",
+      "pressureHpa": 1016,
+      "precipMm": 0.0,
+      "cape": 410,
+      "tempC": 25,
+      "waveM": 1.4,
+      "wavePeriodS": 8,
+      "swellM": 1.2
+    }
+  ],
+  "max24h": {
+    "windKts": 17,
+    "gustKts": 22,
+    "waveM": 2.1,
+    "cape": 2790
+  },
+  "max24to72h": {
+    "windKts": 9,
+    "gustKts": 12,
+    "waveM": 1.8,
+    "cape": 1310
   },
   "tropical": {
     "activeStorms": [],
     "source": "NHC CurrentStorms.json",
     "outlook": {
-      "issued": "Wed, 25 Nov 2026 23:16:30 +0000",
-      "text": "000 ABNT20 KNHC 252316 TWOAT Tropical Weather Outlook NWS National Hurricane Center Miami FL 700 PM EST Wed Nov 25 2026 For the North Atlantic...Caribbean Sea and the Gulf of America: Tropical cyclone formation is not expected during the next 7 days. $$ Forecaster Beven",
+      "issued": "Thu, 26 Nov 2026 05:03:05 +0000",
+      "text": "272 ABNT20 KNHC 260502 TWOAT Tropical Weather Outlook NWS National Hurricane Center Miami FL 100 AM EST Thu Nov 26 2026 For the North Atlantic...Caribbean Sea and the Gulf of America: Tropical cyclone formation is not expected during the next 7 days. $$ Forecaster Gibbs",
       "formationChances": []
     }
   },
@@ -47,6 +245,6 @@
     "warnings": [],
     "coverage": "Tropical Atlantic 07N-31N, 35W to the Caribbean"
   },
-  "level": "OK",
-  "headline": "OK: no storm or gale signals | Model forecast unavailable"
+  "level": "CAUTION",
+  "headline": "CAUTION: High CAPE 2790 J/kg at +0 h - squalls/thunderstorms possible | Now 16 kt NNE, gusts 20, waves 1.9 m \u00b7 24 h max 17 kt / gusts 22 / 2.1 m"
 }
