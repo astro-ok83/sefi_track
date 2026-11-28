@@ -36,16 +36,43 @@ The site shows these in a banner; the 2-hourly status notification reads the sam
 { "current": { "name": "...", "lat": 14.465, "lon": -60.87, "setAt": "..." },
   "history": [ { "name": "...", "lat": ..., "lon": ..., "arrivedAt": "...", "leftAt": "...", "reached": true } ] }
 ```
-The site draws a dashed great-circle line from Sefi to the destination, previous destinations as grey
-dots, a progress bar from the last reached stop, and a distance/time calculator (editable speed).
+The site draws the route as a dashed great-circle line, the destination as a red pin, previous
+destinations as anchors, a progress bar from the last reached stop, and a distance/time calculator.
 
-**Changing it (PIN):** *Change destination* on the site → start typing a place (suggestions from
-OpenStreetMap via the free Photon search, biased toward Sefi's position) or tap/drag the pin on the
-small map, or type lat/lon → PIN.
-The PIN decrypts a GitHub token stored encrypted in `data/auth.json` (AES-GCM, PBKDF2 600k), and the
-page commits the new `destinations.json`; the old destination moves to the history.
+## Points of interest and icons
+`data/places.json` holds map icons, the default route mode and points of interest:
+```json
+{ "icons": { "boat": { "kind": "arrow", "color": "#10b981" }, "destination": { "kind": "pin", "color": "#ef4444" }, ... },
+  "routeMode": "via",
+  "pois": [ { "id": "...", "type": "stop|marina|note|hazard", "name": "...", "lat": ..., "lon": ...,
+              "note": "...", "adminOnly": false, "done": false, "icon": { "kind": "emoji", "emoji": "⛵" } } ] }
+```
+- **Planned stops** (in array order) shape the route: *Via stops* draws Sefi → stops → destination;
+  *Direct* draws Sefi → destination and every point shows its distance from Sefi. Visitors can switch
+  with the Route toggle above the map; the default is set on the admin page.
+- Stops marked `done` are left out of the route. `adminOnly` points only show on the admin page
+  (the file itself is still public).
+- Icon kinds: arrow, boat, pin, anchor, flag, marina, star, dot, warning, note, or `emoji`.
+  Visitors can hide each type with the chips above the map.
+
+## Admin page (`admin.html`, linked at the bottom of the site)
+Unlock with the PIN (top right). The PIN decrypts a GitHub token stored encrypted in `data/auth.json`
+(AES-GCM, PBKDF2 600k); the token stays in memory only, and every save is a commit through the GitHub API.
+- **Destination:** search → results appear as numbered pins on the map and in a list (region, type,
+  distance from Sefi; marinas/harbours first, then nearest to the map view). Tap one, or tap the map,
+  then drag the red pin to fine-tune. A purple preview line shows the route, distance and ETA before
+  you press *Accept & save*. The old destination moves to the list.
+- **Destinations list:** rename, move, re-date, mark reached/not reached, reorder or delete entries.
+- **Points:** add stops, marinas, notes and hazards with the same location picker; *Drop pin* starts a
+  note at the spot you tap. Stops can be reordered.
+- **Icons:** pick a built-in symbol + colour, or any emoji, for the boat, destination, previous
+  moorings and each point type.
+- **Settings:** default route mode; set up or change the PIN.
+
+Search uses OpenStreetMap data through the free Photon and Nominatim services (no key).
 
 **One-time setup:** create a fine-grained token at GitHub → Settings → Developer settings →
 Fine-grained tokens: *Only select repositories* = `sefi_track`, *Repository permissions → Contents* =
-Read and write. On the site: *Change destination → Set up / change PIN*, paste the token, pick a 6+
-digit PIN. Re-run setup to change the PIN or when the token expires. A longer PIN is harder to guess.
+Read and write. On the admin page: *Settings → Set up / change PIN*, paste the token, pick a PIN.
+Use 12+ characters: `data/auth.json` is public, so a short PIN can be guessed offline.
+Re-run setup to change the PIN or when the token expires.

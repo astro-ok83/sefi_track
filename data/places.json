@@ -1,0 +1,13 @@
+{
+  "icons": {
+    "boat": { "kind": "arrow", "color": "#10b981" },
+    "destination": { "kind": "pin", "color": "#ef4444" },
+    "previous": { "kind": "anchor", "color": "#94a3b8" },
+    "stop": { "kind": "flag", "color": "#f59e0b" },
+    "marina": { "kind": "marina", "color": "#38bdf8" },
+    "note": { "kind": "note", "color": "#facc15" },
+    "hazard": { "kind": "warning", "color": "#ef4444" }
+  },
+  "routeMode": "via",
+  "pois": []
+}
