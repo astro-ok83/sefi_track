@@ -1,0 +1,26 @@
+{
+  "current": {
+    "name": "Le Marin, Martinique",
+    "lat": 14.465,
+    "lon": -60.87,
+    "setAt": "2026-11-25T11:30:00Z"
+  },
+  "history": [
+    {
+      "name": "San Sebastián de La Gomera, Canary Islands",
+      "lat": 28.089,
+      "lon": -17.108,
+      "arrivedAt": null,
+      "leftAt": "2026-11-12T09:16:00Z",
+      "reached": true
+    },
+    {
+      "name": "Mindelo, Cape Verde",
+      "lat": 16.886,
+      "lon": -24.988,
+      "arrivedAt": "2026-11-21T17:26:00Z",
+      "leftAt": "2026-11-25T11:26:00Z",
+      "reached": true
+    }
+  ]
+}

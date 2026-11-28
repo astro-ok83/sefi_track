@@ -29,3 +29,23 @@ moved > 30 nm) and writes `data/weather.json`:
 Thresholds: wind ≥ 25 kt (caution) / 34 kt gale (warning), gusts ≥ 35/45 kt, waves ≥ 3.5/5 m,
 tropical cyclone within 600/300 nm of the boat or route. Beyond 24 h, alerts are capped at CAUTION.
 The site shows these in a banner; the 2-hourly status notification reads the same file.
+
+## Destination
+`data/destinations.json` holds the current destination and the previous ones:
+```json
+{ "current": { "name": "...", "lat": 14.465, "lon": -60.87, "setAt": "..." },
+  "history": [ { "name": "...", "lat": ..., "lon": ..., "arrivedAt": "...", "leftAt": "...", "reached": true } ] }
+```
+The site draws a dashed great-circle line from Sefi to the destination, previous destinations as grey
+dots, a progress bar from the last reached stop, and a distance/time calculator (editable speed).
+
+**Changing it (PIN):** *Change destination* on the site → start typing a place (suggestions from
+OpenStreetMap via the free Photon search, biased toward Sefi's position) or tap/drag the pin on the
+small map, or type lat/lon → PIN.
+The PIN decrypts a GitHub token stored encrypted in `data/auth.json` (AES-GCM, PBKDF2 600k), and the
+page commits the new `destinations.json`; the old destination moves to the history.
+
+**One-time setup:** create a fine-grained token at GitHub → Settings → Developer settings →
+Fine-grained tokens: *Only select repositories* = `sefi_track`, *Repository permissions → Contents* =
+Read and write. On the site: *Change destination → Set up / change PIN*, paste the token, pick a 6+
+digit PIN. Re-run setup to change the PIN or when the token expires. A longer PIN is harder to guess.
